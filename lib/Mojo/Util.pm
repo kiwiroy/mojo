@@ -466,7 +466,12 @@ sub _teardown {
   # @ISA has to be cleared first because of circular references
   no strict 'refs';
   @{"${class}::ISA"} = ();
+  # record any possible subclasses for removal from %INC
+  my $classes = [ Mojo::Loader::find_packages $class ];
+
   delete_package $class;
+  # do not remove $class as well.
+  delete $INC{class_to_path $_} for @$classes;
 }
 
 1;

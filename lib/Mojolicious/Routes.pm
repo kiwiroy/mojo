@@ -178,7 +178,7 @@ sub _load {
   my ($self, $app) = @_;
 
   # Load unless already loaded
-  return 1 if $self->{loaded}{$app};
+  return 1 if $self->{loaded}{$app} and $app->can('new');
   if (my $e = load_class $app) { ref $e ? die $e : return undef }
 
   # Check base classes
