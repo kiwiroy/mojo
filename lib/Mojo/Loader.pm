@@ -9,7 +9,7 @@ use Mojo::Util qw(b64_decode class_to_path);
 our @EXPORT_OK
   = qw(data_section file_is_binary find_modules find_packages load_class);
 
-my (%BIN, %CACHE);
+my (%BIN, %CACHE, %ABSENT);
 
 sub data_section { $_[0] ? $_[1] ? _all($_[0])->{$_[1]} : _all($_[0]) : undef }
 
@@ -40,6 +40,9 @@ sub load_class {
   # Invalid class name
   return 1 if ($class || '') !~ /^\w(?:[\w:']*\w)?$/;
 
+  # Already attempted and found to be absent
+  return $ABSENT{$class} if exists $ABSENT{$class};
+
   # Already loaded
   return undef if $class->can('new');
 
@@ -47,7 +50,7 @@ sub load_class {
   eval "require $class; 1" ? return undef : Mojo::Util::_teardown($class);
 
   # Does not exist
-  return 1 if $@ =~ /^Can't locate \Q@{[class_to_path $class]}\E in \@INC/;
+  return $ABSENT{$class} = 1 if $@ =~ /^Can't locate \Q@{[class_to_path $class]}\E in \@INC/;
 
   # Real error
   return Mojo::Exception->new($@)->inspect;
