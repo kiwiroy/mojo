@@ -85,9 +85,17 @@ ok !!Mojo::LoaderTest::B->can('new'), 'loaded successfully';
 ok !!Mojo::LoaderTest::C->can('new'), 'loaded successfully';
 
 # Class does not exist
-is load_class('Mojo::LoaderTest'), 1, 'nothing to load';
-is load_class('Mojo::LoaderTest'), 1, 'nothing to load';
-
+{
+  local $@;
+  is load_class('Mojo::LoaderTest'), 1, 'nothing to load';
+  ok $@ =~ /^Can't locate Mojo\/LoaderTest\.pm in \@INC/,
+    'perl error expected';
+}
+{
+  local $@;
+  is load_class('Mojo::LoaderTest'), 1, 'nothing to load';
+  is $@, undef, 'loading not even attempted';
+}
 # Invalid class
 is load_class('Mojolicious/Lite'),      1,     'nothing to load';
 is load_class('Mojolicious/Lite.pm'),   1,     'nothing to load';
