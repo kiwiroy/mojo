@@ -19,6 +19,7 @@ use constant ROLES =>
 # Supported on Perl 5.22+
 my $NAME
   = eval { require Sub::Util; Sub::Util->can('set_subname') } || sub { $_[1] };
+my %OBJECT_REGISTRY;
 
 # Protect subclasses using AUTOLOAD
 sub DESTROY { }
@@ -93,6 +94,45 @@ sub import {
   # Mojo modules are strict!
   $_->import for qw(strict warnings utf8);
   feature->import(':5.10');
+}
+
+sub io_attr {
+    my ($self, $attrs, $value) = @_;
+    return unless (my $class = ref $self || $self) && $attrs;
+    Carp::croak 'Default has to be a code reference or constant value'
+      if ref $value && ref $value ne 'CODE';
+
+    for my $attr (@{ref $attrs eq 'ARRAY' ? $attrs : [$attrs]}) {
+      Carp::croak qq{Attribute "$attr" invalid} unless $attr =~ /^[a-zA-Z_]\w*$/;
+      
+      my $ref = $OBJECT_REGISTRY{$class} ||= {};
+      if (ref $value) {
+        _monkey_patch $class, $attr, sub {
+          my $id = Scalar::Util::refaddr $_[0];
+          return
+            exists $$ref{$id}{$attr} ? $$ref{$id}{$attr} : ($$ref{$id}{$attr} = $value->($_[0]))
+            if @_ == 1;
+          $$ref{$id}{$attr} = $_[1];
+          $_[0];
+        };
+      }
+      elsif (defined $value) {
+        _monkey_patch $class, $attr, sub {
+          my $id = Scalar::Util::refaddr $_[0];
+          return exists $$ref{$id}{$attr} ? $$ref{$id}{$attr} : ($$ref{$id}{$attr} = $value)
+            if @_ == 1;
+          $$ref{$id}{$attr} = $_[1];
+          $_[0];
+        };
+      }
+      else {
+        _monkey_patch $class, $attr,
+          sub {
+            my $id = Scalar::Util::refaddr $_[0];
+            return $$ref{$id}{$attr} if @_ == 1; $$ref{$id}{$attr} = $_[1]; $_[0];
+          };
+      }
+    }
 }
 
 sub new {
