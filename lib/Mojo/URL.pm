@@ -134,7 +134,11 @@ sub to_abs {
 
   # Authority
   return $abs if $abs->host;
-  $abs->userinfo($base->userinfo)->host($base->host)->port($base->port);
+  $abs->userinfo($base->userinfo)->host($base->host // $abs->host)
+    ->port($base->port);
+  if (defined($abs->host) && 0 == length($abs->host) && !defined($abs->scheme)){
+    $abs->scheme('https') ;
+  }
 
   # Absolute path
   my $path = $abs->path;

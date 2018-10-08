@@ -206,6 +206,12 @@ ok !$url->is_abs, 'is not absolute';
 is $url->host, '',         'no host';
 is $url->path, '/bar/23/', 'right path';
 is "$url", '///bar/23/', 'right relative version';
+is $url->to_abs(Mojo::URL->new('http://example.com')),
+  'http://example.com/bar/23/', 'with authority #1269';
+is $url->to_abs(Mojo::URL->new('http://')), 'http:///bar/23/',
+  'no authority - not a valid http URI #1269';
+is $url->to_abs, 'https:///bar/23/',
+  'no defined authority - not a valid http(s) URI #1269';
 $url = Mojo::URL->new('////bar//23/');
 ok !$url->is_abs, 'is not absolute';
 is $url->host, '',           'no host';
