@@ -99,6 +99,15 @@ sub uniq {
   return $self->new(grep { !$seen{$_ // ''}++ } @$self);
 }
 
+sub unshift {
+  my $self = shift;
+  return $self->new(@_, @$self);
+}
+
+sub unshift_i {
+  return shift->tap(\&CORE::unshift, @_);
+}
+
 sub with_roles { shift->Mojo::Base::with_roles(@_) }
 
 sub _flatten {

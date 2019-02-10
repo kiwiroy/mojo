@@ -171,6 +171,13 @@ $collection = c(undef, '', 3, 2, 1, 0);
 is_deeply $collection->uniq(sub {$_})->to_array, [undef, 3, 2, 1, 0],
   'right result';
 
+# unshift and unshift_i
+$collection = c(1 .. 10);
+is_deeply $collection->unshift(0)->to_array, [0 .. 10], 'zero based, chained';
+is_deeply $collection, [1 .. 10], 'original collection untouched';
+is_deeply $collection->unshift_i(0)->to_array, [0 .. 10], 'inplace, chained';
+is_deeply $collection, [0 .. 10], 'inplace unshift';
+
 # TO_JSON
 is encode_json(c(1, 2, 3)), '[1,2,3]', 'right result';
 
