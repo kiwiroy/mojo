@@ -180,6 +180,15 @@ sub val {
   my $self = shift;
   # "form"
   return {
+    Mojo::Collection->new($self, $self->find('input[formaction]')->each)
+      ->map(sub {
+        my ($dom, $base, $attr) = (shift, shift // '');
+        return () unless $base;
+        $attr = $dom->tag eq 'form' ? 'action' : 'formaction';
+        return () unless (my $action = $dom->attr($attr));
+        $dom->attr($attr, Mojo::URL->new($action)->to_abs($base)->to_string);
+        return ();
+      }, @_)->each,
     $self->find('button, checkbox, input, radio, select, textarea')
       ->map(sub {
         return () if $_->matches('[disabled]');

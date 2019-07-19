@@ -2,10 +2,11 @@ package Mojo::DOM::HTML;
 use Mojo::Base -base;
 
 use Exporter 'import';
+use Mojo::URL;
 use Mojo::Util qw(html_attr_unescape html_unescape xml_escape);
 use Scalar::Util 'weaken';
 
-our @EXPORT_OK = ('tag_to_html');
+our @EXPORT_OK = ('awaken_form', 'tag_to_html');
 
 has tree => sub { ['root'] };
 has 'xml';
@@ -97,6 +98,29 @@ my %BLOCK = map { $_ => 1 } (
   qw(rt s script section select small strike strong style summary table),
   qw(tbody td template textarea tfoot th thead title tr tt u ul xmp)
 );
+
+sub awaken_form {
+  my ($dom, $requrl, $augment, $button) = (shift, shift, shift, shift);
+  my %merged = %{ $dom->val($requrl) || {} }; # copy
+  my $url    = $dom->attr('action')  || '';
+  my $method = $dom->attr('method')  || 'GET';
+  my $enc    = $dom->attr('enctype') || 'multipart';
+  if ($augment) {
+    for my $name(keys %merged) {
+      $merged{$name} = $augment->{$name} if exists $augment->{$name};
+    }
+  }
+  # potentially update
+  $button = $dom->find($button) if $button && !ref($button);
+  if ($button && $button->isa('Mojo::DOM')) {
+    $url    = $button->attr('formaction') if $button->attr('formaction');
+    $method = $button->attr('formmethod') if $button->attr('formmethod');
+    $enc    = $button->attr('formenctype') if $button->attr('formenctype');
+  }
+  $url = Mojo::URL->new($url);
+  $url = $url->to_abs($requrl) if $requrl && !$url->is_abs;
+  return $method => $url, form => \%merged;
+}
 
 sub parse {
   my ($self, $html) = (shift, "$_[0]");
