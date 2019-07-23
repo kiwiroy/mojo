@@ -104,6 +104,8 @@ is $obj8->name,    'Joel',        'base attribute';
 is $obj8->whisper, 'psst, joel',  'method from first role';
 is $obj8->hello,   'hello mojo!', 'method from second role';
 
+diag $obj8->with_roles('+quiet');
+
 # Classes that are not subclasses of Mojo::Base
 my $stream = Mojo::ByteStream->with_roles('Mojo::RoleTest::Hello')->new;
 is $stream->hello, 'hello mojo!', 'right result';
@@ -115,4 +117,3 @@ my $file = Mojo::File->with_roles('Mojo::RoleTest::Hello')->new;
 is $file->hello, 'hello mojo!', 'right result';
 
 done_testing();
-

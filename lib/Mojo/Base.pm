@@ -158,8 +158,11 @@ sub with_roles {
     map { /^\+(.+)$/ ? "${self}::Role::$1" : $_ } @roles)
     unless my $class = Scalar::Util::blessed $self;
 
-  return Role::Tiny->apply_roles_to_object($self,
-    map { /^\+(.+)$/ ? "${class}::Role::$1" : $_ } @roles);
+  $class =~ s/^(.*?)__WITH__.*$/$1/;
+  @roles = grep { !Role::Tiny::does_role($self, $_) }
+    map { /^\+(.+)$/ ? "${class}::Role::$1" : $_ } @roles;
+  return Role::Tiny->apply_roles_to_object($self, @roles) if @roles;
+  return $self;
 }
 
 1;
