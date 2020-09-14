@@ -24,7 +24,7 @@ sub close {
   return unless my $reactor = $self->reactor;
   return unless my $handle  = delete $self->timeout(0)->{handle};
   $reactor->remove($handle);
-  $self->emit('close');
+  $self->emit('close') if $self->{owner} == $$;
 }
 
 sub close_gracefully { $_[0]->is_writing ? $_[0]{graceful}++ : $_[0]->close }
@@ -43,7 +43,7 @@ sub is_writing {
   return !!length($self->{buffer}) || $self->has_subscribers('drain');
 }
 
-sub new { shift->SUPER::new(handle => shift, timeout => 15) }
+sub new { shift->SUPER::new(handle => shift, owner => $$, timeout => 15) }
 
 sub start {
   my $self = shift;
