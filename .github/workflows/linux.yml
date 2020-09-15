@@ -31,7 +31,7 @@ jobs:
           cpanm -n Cpanel::JSON::XS EV Role::Tiny
           cpanm -n Test::Pod Test::Pod::Coverage
       - name: Run tests
-        run: prove -l t t/mojo t/mojolicious
+        run: prove -l t t/mojo t/mojolicious t/regressions
         env:
           TEST_POD: 1
           TEST_EV: 1
