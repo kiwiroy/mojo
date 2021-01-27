@@ -1,0 +1,20 @@
+name: perltidy
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+jobs:
+  perltidy:
+    runs-on: ubuntu-latest
+    container:
+      image: perl:5.32
+    steps:
+      - uses: actions/checkout@v2
+      - name: perl -V
+        run: perl -V
+      - uses: kiwiroy/action-perltidy@main
+        with:
+          ignore: "t/mojo/lib/Mojo/LoaderException.pm:t/mojo/lib/Mojo/LoaderTestException/A.pm:t/mojolicious/lib/MojoliciousTest/SyntaxError.pm:t/mojo/template.t"
